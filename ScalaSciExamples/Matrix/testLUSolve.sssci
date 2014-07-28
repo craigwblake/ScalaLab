@@ -1,0 +1,14 @@
+import scalaSci.ILapack._
+ 
+   var A = Rand(1000) //AAD("1 2 0 ; -1 0 -2; -3 -5 1 ")
+   var b = vrand(1000).getv //AD("3 -5 -4")
+   
+   tic  // for large matrices is significantly faster (e.g. 5.8 times faster)
+   var x = LUSolve(A, b)
+   var tmLapack = toc  
+   
+   tic
+   var y = A\b  // using NUMAL
+   var tmNumal = toc
+   var shouldBeZero = A*x-b
+   

@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20110325;17584400">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 0.79in }
+		P { margin-bottom: 0.08in }
+		PRE { font-family: "Times New Roman" }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="el-GR" DIR="LTR">
+<PRE LANG="en-US">
+
+<FONT SIZE=5><SPAN LANG="en-US"><B>The VISAD interface implementation in ScalaLab </B></SPAN></FONT>
+
+
+
+<FONT SIZE=3><SPAN LANG="en-US"><B>package NumScala;</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>package library;</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>package plotting;</B></SPAN></FONT>
+
+<FONT SIZE=3><SPAN LANG="en-US"><B>import  visad._</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>import visad.java2d.DisplayImplJ2D</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>import visad.java3d.DisplayImplJ3D</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>import java.rmi.RemoteException</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>import java.awt._</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>import javax.swing._</B></SPAN></FONT>
+
+<FONT SIZE=3><SPAN LANG="en-US"><B>/** A two dimensional XY plot */</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>class vXYPlot(figure : vFigure) {</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>// the quantities to be displayed in x-, y- axis and z-axis</B></SPAN></FONT>
+ <FONT SIZE=3><SPAN LANG="en-US"><B>val  x =   new RealType(&quot;x&quot;)</B></SPAN></FONT>
+ <FONT SIZE=3><SPAN LANG="en-US"><B>val  y =   new RealType(&quot;y&quot;)</B></SPAN></FONT>
+ <FONT SIZE=3><SPAN LANG="en-US"><B>val panel = new JPanel()</B></SPAN></FONT>
+ <FONT SIZE=3><SPAN LANG="en-US"><B>//   Use FunctionType(MathType domain, MathType range)</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val func_x_y = new FunctionType(x, y)    // the function y = f(x), represented by (x -&gt; y)</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def plot(vals: Array[Double]) = {</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>val N = vals.length</B></SPAN></FONT>
+   <FONT SIZE=3><SPAN LANG="en-US"><B>// Create the x_set, with  N integer values, ranging from 0 to N-1</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// That means, that there should be N values for y</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// Use Integer1DSet(MathType type, int length)</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>var   x_set = new Integer1DSet(x, N)  // the Data values for x represented by the set</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>// the actual values</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>var   actVals = new  Array[Array[Double]](1, N)</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>for (k&lt;-0 to N-1)</B></SPAN></FONT>
+          <FONT SIZE=3><SPAN LANG="en-US"><B>actVals(0)(k) = vals(k)</B></SPAN></FONT>
+
+<FONT SIZE=3><SPAN LANG="en-US"><B>// create a FlatField, that is the class for the samples</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val vals_ff = new FlatField(func_x_y, x_set)</B></SPAN></FONT>
+
+ <FONT SIZE=3><SPAN LANG="en-US"><B>// and put the act_Vals in it</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>vals_ff.setSamples(actVals)</B></SPAN></FONT>
+
+        <FONT SIZE=3><SPAN LANG="en-US"><B>// create Display and its maps</B></SPAN></FONT>
+   <FONT SIZE=3><SPAN LANG="en-US"><B>var display = new DisplayImplJ2D(&quot;display1&quot;)</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>// create the ScalarMaps: quantity x is to be displaye along x-axis</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// and vals along y-axis</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// use ScalarMap(ScalarType scalar, DisplayRealType display_scalar)</B></SPAN></FONT>
+   <FONT SIZE=3><SPAN LANG="en-US"><B>var   xMap = new ScalarMap(x, Display.XAxis)</B></SPAN></FONT>
+   <FONT SIZE=3><SPAN LANG="en-US"><B>var   yMap = new ScalarMap(y,  Display.YAxis)</B></SPAN></FONT>
+
+    <FONT SIZE=3><SPAN LANG="en-US"><B>// add maps to display</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>display.addMap( xMap )</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>display.addMap( yMap )</B></SPAN></FONT>
+
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// create a data reference and set the FlatField as our data</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>var data_ref = new DataReferenceImpl(&quot;data_ref&quot;)</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>data_ref.setData(vals_ff)</B></SPAN></FONT>
+
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// add reference to display</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>display.addReference( data_ref )</B></SPAN></FONT>
+
+      <FONT SIZE=3><SPAN LANG="en-US"><B>// create application window, put display into it</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>val  jframe = new JFrame(&quot;VisAD application&quot;)</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>jframe.add(display.getComponent())</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>jframe.setSize(600, 600)</B></SPAN></FONT>
+      <FONT SIZE=3><SPAN LANG="en-US"><B>jframe.setVisible(true)</B></SPAN></FONT>
+
+ <FONT SIZE=3><SPAN LANG="en-US"><B>}</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>}</B></SPAN></FONT>
+
+<FONT SIZE=3><SPAN LANG="en-US"><B>object vXYPlot {</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>import java.awt.{Color,Paint}</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>import org.jfree.chart.ChartColor._</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>import org.jfree.chart.plot.DefaultDrawingSupplier;</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>// color cycle ignoring bright colors</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val paints = Array[Paint](</B></SPAN></FONT>
+     <FONT SIZE=3><SPAN LANG="en-US"><B>VERY_DARK_RED, VERY_DARK_BLUE, VERY_DARK_GREEN, VERY_DARK_YELLOW, VERY_DARK_MAGENTA, VERY_DARK_CYAN,</B></SPAN></FONT>
+     <FONT SIZE=3><SPAN LANG="en-US"><B>Color.darkGray,</B></SPAN></FONT>
+     <FONT SIZE=3><SPAN LANG="en-US"><B>DARK_RED, DARK_BLUE, DARK_GREEN, DARK_MAGENTA, DARK_CYAN</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>);</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def paint(series : Int) =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>paints(series % paints.length);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val shapes = DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE;</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def shape(series : Int) =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>shapes(series % shapes.length);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val strokes = DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE;</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def stroke(series : Int) =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>strokes(series % strokes.length);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val fillPaints = DefaultDrawingSupplier.DEFAULT_FILL_PAINT_SEQUENCE;</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def fillPaint(series : Int) =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>fillPaints(series % fillPaints.length);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val outlinePaints = DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE;</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def outlinePaint(series : Int) =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>outlinePaints(series % outlinePaints.length);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val outlineStrokes = DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE;</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>def outlineStroke(series : Int) =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>outlineStrokes(series % outlineStrokes.length);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val dot =</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>new java.awt.geom.Ellipse2D.Double(-1,-1,2,2);</B></SPAN></FONT>
+
+  <FONT SIZE=3><SPAN LANG="en-US"><B>val plus = {</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>val shape = new java.awt.geom.GeneralPath();</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>shape.moveTo(-3,0);</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>shape.lineTo(3,0);</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>shape.moveTo(0,-3);</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>shape.lineTo(0,3);</B></SPAN></FONT>
+    <FONT SIZE=3><SPAN LANG="en-US"><B>shape;</B></SPAN></FONT>
+  <FONT SIZE=3><SPAN LANG="en-US"><B>};</B></SPAN></FONT>
+<FONT SIZE=3><SPAN LANG="en-US"><B>}</B></SPAN></FONT>
+
+</PRE>
+</BODY>
+</HTML>
